@@ -1,0 +1,537 @@
+{
+  "meta": {
+    "titulo": "Escritório GoFluxo",
+    "subtitulo": "equipe interna",
+    "exemplo": true,
+    "rotuloExemplo": "dados de exemplo",
+    "atualizadoEm": "2026-11-12T22:30:00-03:00",
+    "fuso": "America/Fortaleza",
+    "nota": "Prévia. Toda atividade e métrica neste arquivo é dado de exemplo. Depois, cada agente grava o próprio status real aqui, no esquema descrito no README."
+  },
+  "escritorio": {
+    "frase": "Três frentes ativas: Curadoria, Especificação e Qualidade. Os demais especialistas estão configurados, aguardando abertura da frente.",
+    "frentesAtivas": [
+      "conhecimento",
+      "tecnologia",
+      "qualidade"
+    ],
+    "atualizadoPor": "prévia · exemplo"
+  },
+  "setores": [
+    {
+      "id": "diretoria",
+      "nome": "Diretoria",
+      "sala": "Orquestração",
+      "cor": "#a78bfa",
+      "ordem": 1
+    },
+    {
+      "id": "conhecimento",
+      "nome": "Conhecimento",
+      "sala": "Curadoria",
+      "cor": "#22d3ee",
+      "ordem": 2,
+      "frente": "ativa"
+    },
+    {
+      "id": "qualidade",
+      "nome": "Qualidade",
+      "sala": "Portão da Validação",
+      "cor": "#34d399",
+      "ordem": 3,
+      "frente": "ativa",
+      "portao": true
+    },
+    {
+      "id": "pessoal",
+      "nome": "Sala do Breno",
+      "sala": "Organização Pessoal",
+      "cor": "#c4b5fd",
+      "ordem": 4
+    },
+    {
+      "id": "tecnologia",
+      "nome": "Tecnologia",
+      "sala": "Especificação de Agentes",
+      "cor": "#38bdf8",
+      "ordem": 5,
+      "frente": "ativa",
+      "zonaExtra": {
+        "id": "laboratorio",
+        "nome": "Laboratório · Ferramentas e Aprendizado"
+      }
+    },
+    {
+      "id": "marketing",
+      "nome": "Marketing",
+      "sala": "Estratégia de Conteúdo",
+      "cor": "#f472b6",
+      "ordem": 6
+    },
+    {
+      "id": "comercial",
+      "nome": "Comercial",
+      "sala": "Oportunidades e Propostas",
+      "cor": "#fb923c",
+      "ordem": 7
+    },
+    {
+      "id": "clientes",
+      "nome": "Clientes",
+      "sala": "Processos e Entregas",
+      "cor": "#60a5fa",
+      "ordem": 8
+    },
+    {
+      "id": "administracao",
+      "nome": "Administração",
+      "sala": "Pendências",
+      "cor": "#94a3b8",
+      "ordem": 9
+    },
+    {
+      "id": "openbot",
+      "nome": "Operação OpenBot",
+      "sala": "Atlas GoFluxo",
+      "cor": "#818cf8",
+      "ordem": 10
+    },
+    {
+      "id": "reuniao",
+      "nome": "Sala de reunião",
+      "sala": "Livre",
+      "cor": "#d4b06a",
+      "ordem": 11,
+      "semAgentes": true
+    }
+  ],
+  "agentes": [
+    {
+      "id": "atlas-gofluxo",
+      "nome": "Atlas GoFluxo · Orquestrador",
+      "curto": "Atlas GoFluxo",
+      "cor": "#1084FE",
+      "setorId": "diretoria",
+      "papel": "Orquestrador",
+      "status": "trabalhando",
+      "agora": "Encaminha o pacote de exemplo da Curadoria e acompanha o portão da Qualidade.",
+      "progresso": {
+        "etapa": 2,
+        "total": 4,
+        "rotulo": "Orquestração do pacote de exemplo"
+      },
+      "entregas": [
+        {
+          "hora": "14:20",
+          "texto": "Encaminhou um pacote de exemplo à Qualidade"
+        },
+        {
+          "hora": "11:00",
+          "texto": "Abriu a ronda das frentes ativas (exemplo)"
+        }
+      ],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/atlas-gofluxo",
+      "exemplo": true,
+      "corId": "blue"
+    },
+    {
+      "id": "breno-ceo",
+      "nome": "Breno - CEO",
+      "curto": "Breno - CEO",
+      "cor": "#00C972",
+      "setorId": "diretoria",
+      "papel": "Porta de entrada · recebe e encaminha",
+      "status": "trabalhando",
+      "agora": "Recebe o que chega na casa e encaminha às frentes certas (exemplo).",
+      "progresso": {
+        "etapa": 1,
+        "total": 2,
+        "rotulo": "Porta de entrada (exemplo)"
+      },
+      "entregas": [
+        {
+          "hora": "09:00",
+          "texto": "Abriu a porta de entrada do dia (exemplo)"
+        }
+      ],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/breno-ceo",
+      "exemplo": true,
+      "corId": "green"
+    },
+    {
+      "id": "curadoria",
+      "nome": "Conhecimento · Curadoria",
+      "curto": "Curadoria",
+      "cor": "#777777",
+      "setorId": "conhecimento",
+      "papel": "Curadoria de fontes",
+      "status": "trabalhando",
+      "agora": "Fecha fichas de fonte e prepara o pacote que segue para a Qualidade (exemplo).",
+      "progresso": {
+        "etapa": 3,
+        "total": 4,
+        "rotulo": "Fichas de fonte (exemplo)"
+      },
+      "entregas": [
+        {
+          "hora": "15:05",
+          "texto": "Fechou duas fichas de fonte (exemplo)"
+        },
+        {
+          "hora": "12:40",
+          "texto": "Organizou a prateleira de referências (exemplo)"
+        }
+      ],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/curadoria",
+      "exemplo": true,
+      "corId": "gray"
+    },
+    {
+      "id": "espec",
+      "nome": "Tecnologia · Especificação de Agentes",
+      "curto": "Especificação",
+      "cor": "#FF9800",
+      "setorId": "tecnologia",
+      "papel": "Especificação de agentes · lidera Ferramentas e Aprendizado",
+      "status": "trabalhando",
+      "agora": "Avança na especificação de um agente interno (exemplo).",
+      "progresso": {
+        "etapa": 2,
+        "total": 4,
+        "rotulo": "Especificação interna (exemplo)"
+      },
+      "entregas": [
+        {
+          "hora": "15:40",
+          "texto": "Avançou na especificação de um agente interno (exemplo)"
+        }
+      ],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/espec",
+      "exemplo": true,
+      "corId": "yellow"
+    },
+    {
+      "id": "ferr-cursor",
+      "nome": "Cursor",
+      "curto": "Cursor",
+      "cor": "#FF9800",
+      "setorId": "tecnologia",
+      "zona": "laboratorio",
+      "papel": "Ferramentas e Aprendizado · reporta à Especificação",
+      "status": "aguardando_frente",
+      "agora": "Configurado no laboratório, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/ferr-cursor",
+      "exemplo": true,
+      "corId": "yellow"
+    },
+    {
+      "id": "ferr-codex",
+      "nome": "Codex",
+      "curto": "Codex",
+      "cor": "#FF9800",
+      "setorId": "tecnologia",
+      "zona": "laboratorio",
+      "papel": "Ferramentas e Aprendizado · reporta à Especificação",
+      "status": "aguardando_frente",
+      "agora": "Configurado no laboratório, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/ferr-codex",
+      "exemplo": true,
+      "corId": "yellow"
+    },
+    {
+      "id": "ferr-claude",
+      "nome": "Claude",
+      "curto": "Claude",
+      "cor": "#FF9800",
+      "setorId": "tecnologia",
+      "zona": "laboratorio",
+      "papel": "Ferramentas e Aprendizado · reporta à Especificação",
+      "status": "aguardando_frente",
+      "agora": "Configurado no laboratório, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/ferr-claude",
+      "exemplo": true,
+      "corId": "yellow"
+    },
+    {
+      "id": "ferr-github",
+      "nome": "GitHub",
+      "curto": "GitHub",
+      "cor": "#FF9800",
+      "setorId": "tecnologia",
+      "zona": "laboratorio",
+      "papel": "Ferramentas e Aprendizado · reporta à Especificação",
+      "status": "aguardando_frente",
+      "agora": "Configurado no laboratório, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/ferr-github",
+      "exemplo": true,
+      "corId": "yellow"
+    },
+    {
+      "id": "ferr-openbot",
+      "nome": "OpenBot · Trilha e Prática",
+      "curto": "Trilha",
+      "cor": "#00BCA6",
+      "setorId": "tecnologia",
+      "zona": "laboratorio",
+      "papel": "Ferramentas e Aprendizado · reporta à Especificação",
+      "status": "aguardando_frente",
+      "agora": "Configurado no laboratório, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/ferr-openbot",
+      "exemplo": true,
+      "corId": "cyan"
+    },
+    {
+      "id": "ferr-radar",
+      "nome": "Radar X · Casos Grok Bot",
+      "curto": "Radar X",
+      "cor": "#1084FE",
+      "setorId": "tecnologia",
+      "zona": "laboratorio",
+      "papel": "Ferramentas e Aprendizado · reporta à Especificação",
+      "status": "aguardando_frente",
+      "agora": "Configurado no laboratório, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/ferr-radar",
+      "exemplo": true,
+      "corId": "blue"
+    },
+    {
+      "id": "qualidade",
+      "nome": "Qualidade · Validação",
+      "curto": "Validação",
+      "cor": "#777777",
+      "setorId": "qualidade",
+      "papel": "Portão de validação · antes do Breno",
+      "status": "aprovacao",
+      "agora": "Conferiu a entrega de exemplo da Curadoria e pede o ok do Breno para liberar.",
+      "progresso": {
+        "etapa": 3,
+        "total": 4,
+        "rotulo": "Validação do pacote de exemplo"
+      },
+      "entregas": [
+        {
+          "hora": "16:10",
+          "texto": "Conferiu a entrega de exemplo e pediu o ok do Breno"
+        },
+        {
+          "hora": "15:35",
+          "texto": "Comparou com os critérios (exemplo)"
+        }
+      ],
+      "aguardandoBreno": {
+        "titulo": "Liberar para o Breno?",
+        "texto": "A entrega de exemplo da Curadoria passou nos critérios. Liberar para o Breno?",
+        "opcoes": [
+          "Liberar (simulação)",
+          "Devolver com apontamentos"
+        ]
+      },
+      "chatUrl": "#chat/qualidade",
+      "exemplo": true,
+      "corId": "gray"
+    },
+    {
+      "id": "mkt-est",
+      "nome": "Marketing · Estratégia de Conteúdo",
+      "curto": "Estratégia",
+      "cor": "#FF263C",
+      "setorId": "marketing",
+      "papel": "Porta única de Marketing",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/mkt-est",
+      "exemplo": true,
+      "corId": "red"
+    },
+    {
+      "id": "mkt-red",
+      "nome": "Marketing · Redação",
+      "curto": "Redação",
+      "cor": "#FF263C",
+      "setorId": "marketing",
+      "papel": "Textos · reporta à Estratégia",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/mkt-red",
+      "exemplo": true,
+      "corId": "red"
+    },
+    {
+      "id": "mkt-mid",
+      "nome": "Marketing · Produção de Mídia",
+      "curto": "Produção",
+      "cor": "#FF263C",
+      "setorId": "marketing",
+      "papel": "Peças visuais · reporta à Estratégia",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/mkt-mid",
+      "exemplo": true,
+      "corId": "red"
+    },
+    {
+      "id": "com-op",
+      "nome": "Comercial · Oportunidades",
+      "curto": "Oportunidades",
+      "cor": "#777777",
+      "setorId": "comercial",
+      "papel": "Qualificação de oportunidades",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/com-op",
+      "exemplo": true,
+      "corId": "gray"
+    },
+    {
+      "id": "com-pr",
+      "nome": "Comercial · Propostas",
+      "curto": "Propostas",
+      "cor": "#777777",
+      "setorId": "comercial",
+      "papel": "Propostas comerciais",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/com-pr",
+      "exemplo": true,
+      "corId": "gray"
+    },
+    {
+      "id": "cli-proc",
+      "nome": "Clientes · Processos e Entregas",
+      "curto": "Processos",
+      "cor": "#777777",
+      "setorId": "clientes",
+      "papel": "Processos e entregas da casa",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/cli-proc",
+      "exemplo": true,
+      "corId": "gray"
+    },
+    {
+      "id": "adm",
+      "nome": "Administração · Controle de Pendências",
+      "curto": "Pendências",
+      "cor": "#777777",
+      "setorId": "administracao",
+      "papel": "Controle de pendências internas",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/adm",
+      "exemplo": true,
+      "corId": "gray"
+    },
+    {
+      "id": "org-pessoal",
+      "nome": "Breno · Organização Pessoal",
+      "curto": "Pessoal",
+      "cor": "#00C972",
+      "setorId": "pessoal",
+      "papel": "Organização da agenda pessoal",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/org-pessoal",
+      "exemplo": true,
+      "corId": "green"
+    },
+    {
+      "id": "openbot-atlas",
+      "nome": "Openbot - Atlas GoFluxo",
+      "curto": "Openbot",
+      "cor": "#000000",
+      "setorId": "openbot",
+      "papel": "Operação OpenBot",
+      "status": "aguardando_frente",
+      "agora": "Configurado, aguardando abertura da frente.",
+      "progresso": null,
+      "entregas": [],
+      "aguardandoBreno": null,
+      "chatUrl": "#chat/openbot-atlas",
+      "exemplo": true,
+      "corId": "black"
+    }
+  ],
+  "eventos": [
+    {
+      "hora": "16:10",
+      "agenteId": "qualidade",
+      "texto": "Conferiu a entrega de exemplo e pediu o ok do Breno",
+      "exemplo": true,
+      "tipo": "aprovacao"
+    },
+    {
+      "hora": "15:40",
+      "agenteId": "espec",
+      "texto": "Avançou na especificação de um agente interno (exemplo)",
+      "exemplo": true,
+      "tipo": "entrega"
+    },
+    {
+      "hora": "15:05",
+      "agenteId": "curadoria",
+      "texto": "Fechou duas fichas de fonte (exemplo)",
+      "exemplo": true,
+      "tipo": "entrega"
+    },
+    {
+      "hora": "14:20",
+      "agenteId": "atlas-gofluxo",
+      "texto": "Encaminhou um pacote de exemplo à Qualidade",
+      "exemplo": true,
+      "tipo": "handoff"
+    },
+    {
+      "hora": "09:00",
+      "agenteId": "breno-ceo",
+      "texto": "Abriu a porta de entrada da casa (exemplo)",
+      "exemplo": true,
+      "tipo": "info"
+    }
+  ]
+}

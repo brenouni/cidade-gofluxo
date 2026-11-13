@@ -1,36 +1,84 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Cidade GoFluxo">
-<meta name="theme-color" content="#0e1024"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
-<title>Cidade GoFluxo · equipe interna</title><link rel="stylesheet" href="style.css"></head><body>
-<!-- cidade-v3-equipe-20261112: setores da equipe interna, abertura do Atlas, portão da Qualidade -->
-<div id="opening" role="dialog" aria-label="Abertura da Cidade GoFluxo">
-  <button id="skip" type="button">Pular abertura</button>
-  <div class="stars" id="stars"></div>
-  <div id="stage">
-    <div id="oshadow"></div>
-    <div id="oshock"></div>
-    <div id="odust"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <div id="hero" aria-hidden="true"></div>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0a10">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ccircle cx=%2750%27 cy=%2754%27 r=%2736%27 fill=%27%238b6cff%27/%3E%3Ccircle cx=%2750%27 cy=%2710%27 r=%276%27 fill=%27%23f5d56b%27/%3E%3C/svg%3E">
+  <meta name="escritorio-gofluxo" content="escritorio-v1-20261113">
+  <title>Escritório GoFluxo · equipe interna</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="opening" role="dialog" aria-label="Abertura do Escritório GoFluxo">
+    <button id="skip" type="button">Pular abertura</button>
+    <div class="stars" id="stars"></div>
+    <div id="stage">
+      <div id="oshadow"></div>
+      <div id="oshock"></div>
+      <div id="odust"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div id="hero" aria-hidden="true"></div>
+    </div>
+    <div id="openCopy">
+      <span class="sim">dados de exemplo · simulação</span>
+      <h2>Escritório GoFluxo</h2>
+      <p>A equipe interna, por setor — um ambiente, um olhar, um clique até o agente.</p>
+    </div>
   </div>
-  <div id="openCopy">
-    <span class="sim">dados de exemplo · simulação</span>
-    <h2>Cidade GoFluxo</h2>
-    <p>A equipe interna, por setor — com orquestração, handoff, o portão da Qualidade e a sua aprovação.</p>
+
+  <header id="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>Escritório GoFluxo</h1>
+        <span class="sub">equipe interna <span class="sim">dados de exemplo</span></span>
+      </div>
+    </div>
+    <div id="kpis" aria-label="Indicadores do escritório"></div>
+    <div class="tools">
+      <label class="search">
+        <span class="sr">Buscar agente</span>
+        <input id="q" type="search" placeholder="Ir ao agente…" autocomplete="off">
+        <div id="qlist" class="qlist hidden" role="listbox"></div>
+      </label>
+      <div class="view-toggle" role="group" aria-label="Ver como">
+        <button type="button" id="viewMap" class="on">Planta</button>
+        <button type="button" id="viewList">Lista</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="filters" aria-label="Filtrar por setor"></div>
+  <div id="precisa" class="hidden"></div>
+
+  <div id="app">
+    <main id="stageWrap">
+      <div id="floorWrap">
+        <div id="floor" aria-label="Planta do escritório"></div>
+      </div>
+      <div id="zoom">
+        <button type="button" id="zOut" aria-label="Afastar">−</button>
+        <button type="button" id="zFit" aria-label="Caber na tela">caber</button>
+        <button type="button" id="zIn" aria-label="Aproximar">+</button>
+      </div>
+      <section id="lista" class="hidden" aria-label="Equipe por setor"></section>
+    </main>
+
+    <aside id="side">
+      <div id="sideStack">
+        <section id="officeCard" class="card"></section>
+        <section id="events" class="card">
+          <header class="ch">
+            <h2>Central de eventos</h2>
+            <span class="sim sm">exemplo</span>
+          </header>
+          <div id="eventList"></div>
+        </section>
+      </div>
+      <section id="agentPanel" class="card hidden" aria-live="polite"></section>
+    </aside>
   </div>
-</div>
-<canvas id="c"></canvas><svg id="line"><line id="ln" x1="0" y1="0" x2="0" y2="0"/></svg>
-<div id="labels"></div>
-<header id="tl"><h1>Cidade GoFluxo <span class="badge">dados de exemplo</span></h1><div id="pills"></div></header>
-<div id="pipeline" aria-label="Fluxo de uma entrega (simulação)"></div>
-<div id="tc"><button data-m="noite">Noite</button><button data-m="dia">Dia</button><button data-m="entardecer">Entardecer</button></div>
-<div id="tr"><span class="dot"></span><span id="user">Breno</span> · Conectado</div>
-<div id="inbar"><button id="back">← Voltar à cidade</button><span id="bname"></span></div>
-<div id="elev"><button id="up" aria-label="Subir">▲</button><div id="elevF"></div><button id="down" aria-label="Descer">▼</button></div><div id="fname"></div>
-<aside id="side"><button id="sideToggle" aria-label="Bots">☰</button><div id="botList"></div></aside>
-<div id="card" class="hidden"></div>
-<div id="ticker"><b>Atividade</b> <span id="tickTxt"></span></div>
-<div id="feed" class="hidden"><div class="fh"><b>Atividade</b><button id="feedClose">✕</button></div><div id="tabs"></div><div id="feedList"></div></div>
-<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
-<script type="module" src="app.js"></script></body></html>
+
+  <script src="app.js"></script>
+</body>
+</html>
