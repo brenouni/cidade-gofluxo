@@ -1,13 +1,78 @@
 import * as THREE from 'three';
 const $ = s => document.querySelector(s);
 const data = await (await fetch('data.json', { cache: 'no-store' })).json();
-const LS = 'cidade-gofluxo-v1';
+const LS = 'cidade-gofluxo-v3';
 const saved = JSON.parse(localStorage.getItem(LS) || '{"respostas":[],"modo":"noite"}');
-const cli = Object.fromEntries(data.clientes.map(c => [c.id, c]));
-const STATUS = { trabalhando: 'Trabalhando', precisa: 'Precisa de você', ocioso: 'Ocioso', erro: 'Erro' };
+const setores = data.setores || [];
+const edificios = [...setores, ...data.clientes];
+const cli = Object.fromEntries(edificios.map(c => [c.id, c]));
+const setorIds = new Set(setores.map(s => s.id).concat(['gofluxo']));
+const STATUS = { trabalhando: 'Trabalhando', precisa: 'Precisa de você', ocioso: 'Ocioso', erro: 'Erro', aguardando: 'Aguardando frente' };
 const atividade = [...saved.respostas.map(r => ({ hora: r.hora, botId: r.botId, texto: r.texto })), ...data.atividade];
-// respostas já dadas: bot retoma
 for (const r of saved.respostas) { const b = data.bots.find(x => x.id === r.botId); if (b && b.pergunta) { b.status = 'trabalhando'; b.acao = 'Retomando: ' + r.resposta; delete b.pergunta; } }
+
+// ---------- abertura (mascote pousa, depois os textos) ----------
+function mascotSVG(size = 200, eyes = { look: 0, blink: false }) {
+  const look = eyes.look || 0, blink = eyes.blink ? 0.12 : 1;
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true" style="overflow:visible;display:block">
+    <ellipse cx="50" cy="92" rx="26" ry="5" fill="rgba(0,0,0,.35)"/>
+    <circle cx="50" cy="52" r="36" fill="#8b6cff" stroke="rgba(255,255,255,.28)" stroke-width="1.4"/>
+    <ellipse cx="38" cy="40" rx="14" ry="10" fill="#fff" opacity=".18"/>
+    <line x1="50" y1="18" x2="50" y2="4" stroke="#efeaff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="50" cy="3" r="4.5" fill="#f5d56b"/>
+    <g transform="translate(${look},0)">
+      <g transform="translate(37,50) scale(1,${blink})">
+        <ellipse cx="0" cy="0" rx="7.5" ry="11" fill="#fff"/>
+        <circle cx="1" cy="2" r="4.2" fill="#16121f"/>
+        <circle cx="2.6" cy=".2" r="1.5" fill="#fff"/>
+      </g>
+      <g transform="translate(63,50) scale(1,${blink})">
+        <ellipse cx="0" cy="0" rx="7.5" ry="11" fill="#fff"/>
+        <circle cx="1" cy="2" r="4.2" fill="#16121f"/>
+        <circle cx="2.6" cy=".2" r="1.5" fill="#fff"/>
+      </g>
+    </g>
+  </svg>`;
+}
+let openingDone = false;
+function playOpening() {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const preview = /(?:^|[?&])preview=1(?:&|$)/.test(location.search);
+  const hero = $('#hero');
+  if (!hero || reduced || preview) { finishOpening(true); return; }
+  hero.innerHTML = mascotSVG(200, { look: 0 });
+  const box = $('#stars');
+  if (box && !box.childElementCount) {
+    for (let i = 0; i < 40; i++) {
+      const s = document.createElement('i'); s.className = 'star';
+      s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%';
+      s.style.animationDelay = (Math.random() * 3) + 's';
+      box.appendChild(s);
+    }
+  }
+  requestAnimationFrame(() => { hero.classList.add('fall'); $('#oshadow')?.classList.add('on'); });
+  setTimeout(() => {
+    hero.classList.remove('fall'); hero.classList.add('land');
+    $('#oshock')?.classList.add('go'); $('#odust')?.classList.add('go');
+  }, 900);
+  setTimeout(() => {
+    hero.classList.remove('land'); hero.classList.add('idle');
+    hero.innerHTML = mascotSVG(200, { look: 3 });
+  }, 1650);
+  setTimeout(() => { hero.innerHTML = mascotSVG(200, { look: 3, blink: true }); }, 2000);
+  setTimeout(() => {
+    hero.innerHTML = mascotSVG(200, { look: 0 });
+    $('#openCopy')?.classList.add('show');
+  }, 2300);
+  setTimeout(() => finishOpening(false), 3400);
+}
+function finishOpening(instant) {
+  if (openingDone) return; openingDone = true;
+  $('#opening')?.classList.add('gone');
+  document.body.classList.remove('booting');
+}
+$('#skip')?.addEventListener('click', () => finishOpening(true));
+playOpening();
 
 // ---------- cena ----------
 const canvas = $('#c');
@@ -17,138 +82,260 @@ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadow
 const scene = new THREE.Scene();
 const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, -100, 200);
 const target = new THREE.Vector3(0, 0, 0), camOff = new THREE.Vector3(20, 20, 20);
-let zoom = 1, viewH = 30;
+let zoom = 0.82, viewH = 34;
 const hemi = new THREE.HemisphereLight(0xffffff, 0x444466, 0.6); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 1.2); sun.position.set(15, 25, 8); sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 80 }); sun.shadow.bias = -0.0005; scene.add(sun);
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 90 }); sun.shadow.bias = -0.0005; scene.add(sun);
 const city = new THREE.Group(); scene.add(city); const bgroups = [];
 const M = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
 function box(w, h, d, mat, x, y, z, p = city) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; p.add(m); return m; }
-// chão e ruas
-const ground = new THREE.Mesh(new THREE.BoxGeometry(44, 1, 40), M('#8fd694')); ground.position.y = -0.5; ground.receiveShadow = true; city.add(ground);
+const ground = new THREE.Mesh(new THREE.BoxGeometry(52, 1, 48), M('#8fd694')); ground.position.y = -0.5; ground.receiveShadow = true; city.add(ground);
 const roadM = M('#4a4e69');
-box(44, 0.05, 2.4, roadM, 0, 0.02, 0); box(2.4, 0.05, 40, roadM, 0, 0.02, 0);
+box(52, 0.05, 2.4, roadM, 0, 0.02, 0); box(2.4, 0.05, 48, roadM, 0, 0.02, 0);
 const lineM = new THREE.MeshBasicMaterial({ color: '#f2e9e4' });
-for (let i = -20; i < 21; i += 2) { box(0.9, 0.06, 0.12, lineM, i, 0.03, 0).castShadow = false; box(0.12, 0.06, 0.9, lineM, 0, 0.03, i).castShadow = false; }
-const plazaM = M('#e9e3d5');
-// prédios
+for (let i = -24; i < 25; i += 2) { box(0.9, 0.06, 0.12, lineM, i, 0.03, 0).castShadow = false; box(0.12, 0.06, 0.9, lineM, 0, 0.03, i).castShadow = false; }
+const plazaM = M('#e9e3d5'), plazaSetor = M('#ddd6fe');
 const winMats = [];
-function windows(g, w, h, d, cor) {
-  const wm = new THREE.MeshStandardMaterial({ color: '#2b2d42', emissive: new THREE.Color(cor).lerp(new THREE.Color('#fff2b3'), .6), emissiveIntensity: 0 }); winMats.push(wm);
-  for (let y = 0.7; y < h - 0.3; y += 0.7) for (let x = -w / 2 + 0.5; x < w / 2 - 0.2; x += 0.7) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.05), wm); m.position.set(x, y, d / 2 + 0.01); g.add(m); const m2 = m.clone(); m2.rotation.y = Math.PI / 2; m2.position.set(w / 2 + 0.01, y, x * d / w); g.add(m2); }
+function windows(g, w, h, d, cor, frente) {
+  const dim = frente === 'aguardando';
+  const wm = new THREE.MeshStandardMaterial({
+    color: dim ? '#1a1c28' : '#2b2d42',
+    emissive: dim ? new THREE.Color('#445') : new THREE.Color(cor).lerp(new THREE.Color('#fff2b3'), .6),
+    emissiveIntensity: 0
+  });
+  winMats.push({ m: wm, frente: frente || 'ativa' });
+  for (let y = 0.55; y < h - 0.25; y += 0.6)
+    for (let x = -w / 2 + 0.4; x < w / 2 - 0.2; x += 0.6) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.05), wm); m.position.set(x, y, d / 2 + 0.01); g.add(m);
+      const m2 = m.clone(); m2.rotation.y = Math.PI / 2; m2.position.set(w / 2 + 0.01, y, x * d / w); g.add(m2);
+    }
 }
 const sinais = [];
-for (const c of data.clientes) {
+const bLabs = [];
+function addBLab(c, y) {
+  if (c.grupo !== 'setor' || c.frente !== 'aguardando') return;
+  const n = (data.bots || []).filter(b => b.clienteId === c.id && b.naCidade !== false).length;
+  if (n < 2) return; // um bot só: o rótulo do próprio bot basta
+  const el = document.createElement('div');
+  el.className = 'blab dim';
+  el.style.setProperty('--c', c.cor);
+  el.innerHTML = `<div class="nm">${c.nome}</div><div class="sub">aguardando frente</div>`;
+  $('#labels').appendChild(el);
+  bLabs.push({ el, cid: c.id, y: y || (c.altura + 1.35) });
+}
+
+for (const c of edificios) {
   const g = new THREE.Group(); g.position.set(c.pos[0], 0, c.pos[1]); city.add(g); g.userData.cid = c.id; bgroups.push(g);
-  box(8, 0.12, 7, plazaM, 0, 0.06, 0, g);
-  const cor = new THREE.Color(c.cor), base = M(cor.clone().lerp(new THREE.Color('#ffffff'), .45)), acc = M(c.cor);
-  const h = c.altura;
+  const setor = c.grupo === 'setor';
+  const pw = setor ? 5.2 : 8, pd = setor ? 4.6 : 7;
+  box(pw, 0.12, pd, setor ? plazaSetor : plazaM, 0, 0.06, 0, g);
+  const cor = new THREE.Color(c.cor), base = M(cor.clone().lerp(new THREE.Color('#ffffff'), c.frente === 'aguardando' ? .55 : .45)), acc = M(c.cor);
+  if (c.frente === 'aguardando') { base.color.lerp(new THREE.Color('#6b6e7e'), .25); }
+  const h = c.altura, fr = c.frente;
   if (c.tipo === 'prefeitura') {
     box(5, h, 3.6, base, 0, h / 2, 0, g); box(5.4, .3, 4, acc, 0, h + .15, 0, g);
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.2, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), acc); dome.position.y = h + .3; dome.castShadow = true; g.add(dome);
     for (let i = -2; i <= 2; i++) box(.25, h * .8, .25, M('#ffffff'), i * 1.0, h * .4, 2, g);
-    windows(g, 5, h, 3.6, c.cor);
+    windows(g, 5, h, 3.6, c.cor, fr);
   } else if (c.tipo === 'fabrica') {
     box(4.5, h, 3, base, -.3, h / 2, 0, g); for (let i = 0; i < 3; i++) { const r = box(1.5, .6, 3, acc, -1.8 + i * 1.5, h + .3, 0, g); r.rotation.z = .5; }
     const ch = new THREE.Mesh(new THREE.CylinderGeometry(.3, .4, 2.5, 12), M('#6c757d')); ch.position.set(2.3, h + .6, -1); ch.castShadow = true; g.add(ch);
-    windows(g, 4.5, h, 3, c.cor);
+    windows(g, 4.5, h, 3, c.cor, fr);
   } else if (c.tipo === 'clinica') {
     box(4, h, 3.4, base, 0, h / 2, 0, g); box(.4, 1.4, .2, M('#ff4f6d'), 0, h + .9, 0, g); box(1.4, .4, .2, M('#ff4f6d'), 0, h + .9, 0, g);
-    windows(g, 4, h, 3.4, c.cor);
+    windows(g, 4, h, 3.4, c.cor, fr);
   } else if (c.tipo === 'torre') {
     box(3, h, 3, base, 0, h / 2, 0, g); box(2.2, 1.4, 2.2, acc, 0, h + .7, 0, g); box(.1, 1.2, .1, M('#ccc'), 0, h + 2, 0, g);
-    windows(g, 3, h, 3, c.cor);
+    windows(g, 3, h, 3, c.cor, fr);
+  } else if (c.tipo === 'portao') {
+    box(3.2, h, 2.6, base, 0, h / 2, 0, g);
+    box(.38, h + .8, .38, acc, -1.55, (h + .8) / 2, 1.45, g);
+    box(.38, h + .8, .38, acc, 1.55, (h + .8) / 2, 1.45, g);
+    box(3.6, .32, .5, acc, 0, h + .65, 1.45, g);
+    const lint = M('#fff'); lint.emissive = new THREE.Color('#34d399'); lint.emissiveIntensity = 0.5;
+    box(1.1, .18, .18, lint, 0, h + .95, 1.55, g).castShadow = false;
+    windows(g, 3.2, h, 2.6, c.cor, fr);
+  } else if (c.tipo === 'lab') {
+    box(3.4, h, 2.6, base, 0, h / 2, 0, g);
+    box(3.6, .2, 2.8, acc, 0, h + .1, 0, g);
+    box(.08, 1.3, .08, M('#c0c4cc'), 1.3, h + .75, 0, g);
+    const dish = new THREE.Mesh(new THREE.SphereGeometry(.28, 10, 8, 0, Math.PI * 2, 0, 1.2), M('#e2e8f0')); dish.position.set(1.3, h + 1.45, 0); dish.castShadow = true; g.add(dish);
+    windows(g, 3.4, h, 2.6, c.cor, fr);
+  } else if (c.tipo === 'studio') {
+    box(3.4, h, 2.6, base, 0, h / 2, 0, g);
+    const board = M(c.cor); board.emissive = new THREE.Color(c.cor); board.emissiveIntensity = fr === 'aguardando' ? .15 : .55;
+    box(2.2, 1.0, .08, board, 0, h + .65, .2, g);
+    windows(g, 3.4, h, 2.6, c.cor, fr);
+  } else if (c.tipo === 'oficina-bot') {
+    box(3.4, h, 2.6, base, 0, h / 2, 0, g);
+    box(3.6, .2, 2.8, acc, 0, h + .1, 0, g);
+    box(1.8, 1.15, .06, M('#2b2d42'), 0, .65, 1.34, g);
+    for (let y = .25; y < 1.15; y += .22) box(1.7, .04, .07, M('#6c757d'), 0, y, 1.36, g);
+    windows(g, 3.4, h, 2.6, c.cor, fr);
+  } else if (c.tipo === 'setor') {
+    box(3.2, h, 2.5, base, 0, h / 2, 0, g);
+    box(3.4, .18, 2.7, acc, 0, h + .1, 0, g);
+    windows(g, 3.2, h, 2.5, c.cor, fr);
   } else {
     box(5, h, 3.5, base, 0, h / 2, 0, g); box(5.2, .25, 3.7, acc, 0, h + .12, 0, g);
     for (let i = 0; i < 3; i++) { const t = new THREE.Mesh(new THREE.CylinderGeometry(.4, .4, 1, 12), acc); t.position.set(-1.6 + i * 1.1, .5, -2.6); t.castShadow = true; g.add(t); }
-    windows(g, 5, h, 3.5, c.cor);
+    windows(g, 5, h, 3.5, c.cor, fr);
   }
-  // placa neon
-  const sm = new THREE.MeshStandardMaterial({ color: c.cor, emissive: c.cor, emissiveIntensity: .6 }); sinais.push(sm);
-  box(2.6, .35, .08, sm, 0, .5, (c.tipo === 'prefeitura' ? 1.85 : c.tipo === 'torre' ? 1.55 : 1.8) + .05, g).castShadow = false;
+  const sm = new THREE.MeshStandardMaterial({ color: c.cor, emissive: c.cor, emissiveIntensity: c.frente === 'aguardando' ? .2 : .6 }); sinais.push(sm);
+  const signZ = (c.tipo === 'prefeitura' ? 1.85 : c.tipo === 'torre' ? 1.55 : (setor ? 1.35 : 1.8)) + .05;
+  box(setor ? 2.0 : 2.6, .32, .08, sm, 0, .45, signZ, g).castShadow = false;
+  addBLab(c, h + (c.tipo === 'portao' ? 1.6 : 1.15));
 }
-// árvores e postes
 const trunkM = M('#8d6e63'), leafM = [M('#52b788'), M('#40916c'), M('#74c69d')];
 const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);
 function tree(x, z) { box(.2, .6, .2, trunkM, x, .3, z); const l = new THREE.Mesh(new THREE.IcosahedronGeometry(.55 + rnd() * .3, 0), leafM[Math.floor(rnd() * 3)]); l.position.set(x, 1.1, z); l.castShadow = true; city.add(l); }
-for (let i = 0; i < 46; i++) { let x = (rnd() - .5) * 42, z = (rnd() - .5) * 38; if (Math.abs(x) < 2.2 || Math.abs(z) < 2.2) continue; if (data.clientes.some(c => Math.abs(x - c.pos[0]) < 4.5 && Math.abs(z - c.pos[1]) < 4)) continue; tree(x, z); }
+function occupied(x, z) {
+  return edificios.some(c => {
+    const r = c.grupo === 'setor' ? 3.2 : 4.5, rz = c.grupo === 'setor' ? 2.8 : 4;
+    return Math.abs(x - c.pos[0]) < r && Math.abs(z - c.pos[1]) < rz;
+  });
+}
+for (let i = 0; i < 58; i++) { let x = (rnd() - .5) * 50, z = (rnd() - .5) * 46; if (Math.abs(x) < 2.2 || Math.abs(z) < 2.2) continue; if (occupied(x, z)) continue; tree(x, z); }
 const lampLights = [], bulbM = new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#ffd59e', emissiveIntensity: 0 });
-for (const [x, z] of [[-5, 1.6], [5, 1.6], [-5, -1.6], [5, -1.6], [1.6, -14], [-1.6, 14], [-15, 1.6], [15, -1.6]]) {
+for (const [x, z] of [[-5, 1.6], [5, 1.6], [-5, -1.6], [5, -1.6], [1.6, -14], [-1.6, 14], [-15, 1.6], [15, -1.6], [1.6, -7], [-1.6, 7]]) {
   box(.1, 1.6, .1, M('#555'), x, .8, z); box(.25, .2, .25, bulbM, x, 1.7, z);
   const L = new THREE.PointLight('#ffcf8a', 0, 6, 1.5); L.position.set(x, 1.6, z); city.add(L); lampLights.push(L);
 }
-// carros
 const cars = []; for (let i = 0; i < 4; i++) { const g = new THREE.Group(); box(1, .4, .55, M(['#ef476f', '#06d6a0', '#118ab2', '#ffd166'][i]), 0, .3, 0, g); box(.55, .3, .5, M('#e0fbfc'), -.05, .6, 0, g); city.add(g); cars.push({ g, axis: i % 2, off: i * 11, dir: i < 2 ? 1 : -1 }); }
+
+// ---------- handoff visível (pacote de exemplo) ----------
+const token = new THREE.Mesh(new THREE.BoxGeometry(.55, .16, .42), new THREE.MeshStandardMaterial({ color: '#fff6d5', roughness: .4, emissive: '#f5d56b', emissiveIntensity: .55 }));
+token.castShadow = true; token.position.y = 1.15; city.add(token);
+const tokenLab = document.createElement('div'); tokenLab.id = 'handoff-lab'; tokenLab.textContent = 'pacote · exemplo';
+$('#labels').appendChild(tokenLab);
+const HANDOFF = ['curadoria', 'espec', 'qualidade', 'atlas-gofluxo'];
+let hFrom = 0, hT = 0;
 
 // ---------- bots ----------
 const labels = $('#labels');
-const bots = data.bots.map(b => {
+const bots = data.bots.filter(b => b.naCidade !== false).map(b => {
   const c = cli[b.clienteId]; const pos = new THREE.Vector3(c.pos[0] + b.offset[0], 0, c.pos[1] + b.offset[1]);
   const g = new THREE.Group(); g.position.copy(pos); city.add(g);
-  const mat = new THREE.MeshStandardMaterial({ color: b.cor, roughness: .35, emissive: b.cor, emissiveIntensity: .15 });
+  const dim = b.status === 'aguardando';
+  const mat = new THREE.MeshStandardMaterial({ color: b.cor, roughness: .35, emissive: b.cor, emissiveIntensity: dim ? .04 : .15, transparent: dim, opacity: dim ? .8 : 1 });
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(.42, .45, 6, 16), mat); body.castShadow = true; body.position.y = 1; g.add(body);
   const eyeM = new THREE.MeshBasicMaterial({ color: '#1b1d3a' });
   for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.07, 8, 8), eyeM); e.position.set(s * .15, .15, .4); body.add(e); }
   const sh = new THREE.Mesh(new THREE.CircleGeometry(.4, 20), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .2 })); sh.rotation.x = -Math.PI / 2; sh.position.y = .13; g.add(sh);
   const ring = new THREE.Mesh(new THREE.RingGeometry(.55, .68, 32), new THREE.MeshBasicMaterial({ color: '#ff4f8b', transparent: true, opacity: 0 })); ring.rotation.x = -Math.PI / 2; ring.position.y = .14; g.add(ring);
-  body.rotation.y = Math.atan2(20, 20) * 0;
   const lab = document.createElement('div'); lab.className = 'lab'; lab.style.setProperty('--c', b.cor); labels.appendChild(lab);
   const bub = document.createElement('div'); bub.className = 'bub hidden'; labels.appendChild(bub);
   return { d: b, g, body, ring, lab, bub, ph: rnd() * 6, city: true };
 });
 function renderBot(o) {
-  const b = o.d; o.lab.className = 'lab' + (b.status === 'erro' ? ' err' : '');
-  o.lab.innerHTML = `<div class="nm">${b.nome}</div><div class="ac">${b.status === 'erro' ? '⚠ ' : ''}${b.acao}</div>`;
+  const b = o.d;
+  const wait = b.status === 'aguardando';
+  o.lab.className = 'lab' + (b.status === 'erro' ? ' err' : '') + (wait ? ' dim' : '');
+  const nCity = data.bots.filter(x => x.clienteId === b.clienteId && x.naCidade !== false).length;
+  if (o.city && wait && nCity > 1) o.lab.classList.add('hidden');
+  if (wait) o.lab.innerHTML = `<div class="nm">${b.nome}</div>`;
+  else o.lab.innerHTML = `<div class="nm">${b.nome}</div><div class="ac">${b.status === 'erro' ? '⚠ ' : ''}${b.acao}</div>`;
   if (b.status === 'precisa' && b.pergunta) {
-    o.bub.classList.remove('hidden'); o.bub.onclick = () => o.bub.classList.toggle('open');
-    o.bub.innerHTML = `<div class="t">PRECISA DE VOCÊ · ${b.nome}</div><div class="q">${b.pergunta.texto}</div>` + b.pergunta.opcoes.map((p, i) => `<button data-i="${i}">${p}</button>`).join('');
+    o.bub.classList.remove('hidden');
+    if (!o.bub.dataset.bound) {
+      o.bub.dataset.bound = '1';
+      o.bub.onclick = () => o.bub.classList.toggle('open');
+      if (b.id === 'qualidade') o.bub.classList.add('open');
+    }
+    const ex = (b.exemplo || (b.pergunta.texto || '').includes('exemplo')) ? '<div class="ex">DADOS DE EXEMPLO</div>' : '';
+    o.bub.innerHTML = `${ex}<div class="t">PRECISA DE VOCÊ · ${b.nome}</div><div class="q">${b.pergunta.texto}</div>` + b.pergunta.opcoes.map((p, i) => `<button data-i="${i}">${p}</button>`).join('');
     o.bub.querySelectorAll('button').forEach(btn => btn.onclick = e => { e.stopPropagation(); responder(o, b.pergunta.opcoes[+btn.dataset.i]); });
   } else o.bub.classList.add('hidden');
   const isSel = selected === o; o.ring.material.opacity = isSel || b.status === 'precisa' || b.status === 'erro' ? .9 : 0;
   o.ring.material.color.set(isSel ? '#ffffff' : b.status === 'erro' ? '#ff3b3b' : '#ff4f8b');
-  if (!o.city) o.lab.innerHTML = `<div class="nm">${b.nome}${o.helper ? ' <small>exemplo</small>' : ''}</div><div><span class="tag"><i class="s-${b.status}"></i>${STATUS[b.status]}</span></div><div class="ac">${b.acao}</div>`;
+  if (!o.city) o.lab.innerHTML = `<div class="nm">${b.nome}${o.helper || b.exemplo ? ' <small>exemplo</small>' : ''}</div><div><span class="tag"><i class="s-${b.status}"></i>${STATUS[b.status] || b.status}</span></div><div class="ac">${b.acao}</div>`;
 }
-const hora = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const hora = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Fortaleza' });
 function responder(o, resp) {
   const b = o.d, h = hora(), texto = `Breno respondeu "${resp}" — ${b.pergunta.texto}`;
   saved.respostas.unshift({ botId: b.id, pergunta: b.pergunta.texto, resposta: resp, hora: h, em: new Date().toISOString(), texto }); persist();
   atividade.unshift({ hora: h, botId: b.id, texto });
   b.timeline.push({ hora: h, texto: `Resposta recebida: ${resp}` });
   b.status = 'trabalhando'; b.acao = 'Retomando: ' + resp; delete b.pergunta;
-  views.filter(v => v.d === b).forEach(renderBot); refreshUI();
+  views.filter(v => v.d === b).forEach(renderBot); refreshUI(); renderPipeline();
 }
 const persist = () => localStorage.setItem(LS, JSON.stringify(saved));
 
 // ---------- UI ----------
 let selected = null; const views = [];
-function refreshUI() {
-  const n = s => data.bots.filter(b => b.status === s).length;
-  $('#pills').innerHTML = `<span class="pill"><i class="s-trabalhando"></i>${n('trabalhando')} trabalhando</span><span class="pill"><i class="s-precisa"></i>${n('precisa') + n('erro')} precisam de você</span><span class="pill"><i class="s-ocioso"></i>${n('ocioso')} ociosos</span>`;
-  $('#botList').innerHTML = data.clientes.map(c => `<div class="grp">${c.nome}</div>` + data.bots.filter(b => b.clienteId === c.id).map(b => `<div class="bi${selected?.d.id === b.id ? ' sel' : ''}" data-id="${b.id}"><span class="av" style="background:${b.cor}"></span>${b.nome}<span class="st s-${b.status}"></span></div>`).join('')).join('');
-  $('#botList').querySelectorAll('.bi').forEach(el => el.onclick = () => selectById(el.dataset.id));
-  ticker(); renderFeed(); if (selected) renderCard();
+const PIPE = [['Pedido','Ped.'], ['Atlas','Atlas'], ['Especialista','Espec.'], ['Qualidade','Qual.'], ['Breno','Breno'], ['Entrega','Entr.']];
+function pipelineIdx() {
+  const q = data.bots.find(b => b.id === 'qualidade');
+  if (q?.status === 'precisa') return 4;
+  if (q?.status === 'trabalhando' && (q.acao || '').toLowerCase().includes('liber')) return 5;
+  return 3;
 }
-let tickI = 0; function ticker() { const a = atividade[tickI % atividade.length]; const b = data.bots.find(x => x.id === a.botId); $('#tickTxt').textContent = `${a.hora} · ${b?.nome}: ${a.texto}`; }
+function renderPipeline() {
+  const el = $('#pipeline'); if (!el) return;
+  const idx = pipelineIdx();
+  const short = innerWidth < 800;
+  el.innerHTML = PIPE.map((n, i) => {
+    const cls = i < idx ? 'done' : (i === idx ? 'on' : '');
+    const arr = i < PIPE.length - 1 ? '<span class="arr">→</span>' : '';
+    return `<span class="p ${cls}"><span class="n">${i + 1}</span> ${short ? n[1] : n[0]}</span>${arr}`;
+  }).join('');
+}
+function groupHtml(title, items, extra = '', fold = false) {
+  if (!items.length) return '';
+  const rows = items.map(b => `<div class="bi${selected?.d.id === b.id ? ' sel' : ''}" data-id="${b.id}"><span class="av" style="background:${b.cor}"></span>${b.nome}<span class="st s-${b.status}"></span></div>`).join('');
+  if (!fold) return `<div class="grp">${title}${extra}</div>` + rows;
+  return `<div class="gfold"><button type="button" class="grp fold-toggle" aria-expanded="false">${title} · ${items.length}<span class="chev">▸</span></button><div class="fold hidden">${extra}${rows}</div></div>`;
+}
+function refreshUI() {
+  const n = s => data.bots.filter(b => b.status === s && b.naCidade !== false).length;
+  $('#pills').innerHTML = `<span class="pill"><i class="s-trabalhando"></i>${n('trabalhando')} trabalhando</span><span class="pill"><i class="s-precisa"></i>${n('precisa') + n('erro')} precisam de você</span><span class="pill"><i class="s-aguardando"></i>${n('aguardando')} aguardando frente</span><span class="pill"><i class="s-ocioso"></i>${n('ocioso')} ociosos</span>`;
+  const internos = id => data.bots.filter(b => b.clienteId === id);
+  let html = groupHtml('Centro · Orquestração', internos('gofluxo'));
+  for (const s of setores) {
+    const items = internos(s.id).filter(b => b.naCidade !== false);
+    const tools = internos(s.id).filter(b => b.naCidade === false);
+    const tag = s.frente === 'aguardando' ? ' · aguardando' : '';
+    const extra = tools.length ? `<div class="tools">no laboratório: ${tools.map(t => t.nome).join(' · ')}</div>` : '';
+    html += groupHtml(s.nome + tag, items, extra, s.frente === 'aguardando');
+  }
+  for (const c of data.clientes.filter(c => c.id !== 'gofluxo')) html += groupHtml(c.nome, internos(c.id));
+  $('#botList').innerHTML = html;
+  $('#botList').querySelectorAll('.bi').forEach(el => el.onclick = () => selectById(el.dataset.id));
+  $('#botList').querySelectorAll('.fold-toggle').forEach(btn => btn.onclick = () => {
+    const fold = btn.nextElementSibling;
+    const open = fold.classList.toggle('hidden');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    btn.querySelector('.chev').textContent = open ? '▸' : '▾';
+  });
+  ticker(); renderFeed(); renderPipeline(); if (selected) renderCard();
+}
+let tickI = 0; function ticker() { if (!atividade.length) return; const a = atividade[tickI % atividade.length]; const b = data.bots.find(x => x.id === a.botId); const ex = a.exemplo || b?.exemplo ? ' · exemplo' : ''; $('#tickTxt').textContent = `${a.hora} · ${b?.nome}: ${a.texto}${ex}`; }
 setInterval(() => { tickI++; ticker(); }, 4000);
 function renderCard() {
-  const b = selected.d, c = cli[b.clienteId], pct = Math.round(b.etapa / b.totalEtapas * 100);
-  $('#card').innerHTML = `<button class="x">✕</button><div class="cl">${c.nome}</div><h3 style="color:${b.cor}">${b.nome}</h3><div style="opacity:.7">${b.papel}</div>
-  <div style="margin-top:6px"><span class="pill"><i class="s-${b.status}"></i>${STATUS[b.status]}</span></div>
+  const b = selected.d, c = cli[b.clienteId], pct = Math.round((b.etapa / Math.max(1, b.totalEtapas)) * 100);
+  const ex = b.exemplo ? '<span class="badge" style="margin-left:6px">dados de exemplo</span>' : '';
+  $('#card').innerHTML = `<button class="x">✕</button><div class="cl">${c.nome}</div><h3 style="color:${b.cor}">${b.nome}</h3><div style="opacity:.7">${b.papel} ${ex}</div>
+  <div style="margin-top:6px"><span class="pill"><i class="s-${b.status}"></i>${STATUS[b.status] || b.status}</span></div>
   <div class="lbl">TAREFA</div><div>${b.tarefa}</div><div style="opacity:.75;margin-top:3px">${b.acao}</div>
   <div class="lbl">Etapa ${b.etapa} de ${b.totalEtapas}</div><div class="bar"><div style="width:${pct}%;background:${b.cor}"></div></div>
-  <div class="lbl">LINHA DO TEMPO</div><div class="tl">${b.timeline.map(t => `<div><b>${t.hora}</b>${t.texto}</div>`).join('') || '<div>Sem eventos.</div>'}</div>${mode === 'city' ? `<button class="pillb enter" style="background:${c.cor}">Entrar: ${c.predio} →</button>` : ''}`;
+  <div class="lbl">LINHA DO TEMPO</div><div class="tl">${(b.timeline || []).map(t => `<div><b>${t.hora}</b>${t.texto}</div>`).join('') || '<div>Sem eventos.</div>'}</div>${mode === 'city' ? `<button class="pillb enter" style="background:${c.cor}">Entrar: ${c.predio} →</button>` : ''}`;
   const en = $('#card').querySelector('.enter'); if (en) en.onclick = () => enter(b.clienteId, b.id);
   $('#card').querySelector('.x').onclick = () => { const p = selected; selected = null; renderBot(p); $('#card').classList.add('hidden'); refreshUI(); };
 }
 let panTo = null;
 function select(o) { const p = selected; selected = o; if (p) renderBot(p); renderBot(o); if (mode === 'inside') zoom = 2.4; $('#card').classList.remove('hidden'); panTo = o.g.getWorldPosition(new THREE.Vector3()).setY(mode === 'inside' ? 1 : 0); $('#side').classList.remove('open'); refreshUI(); }
 $('#sideToggle').onclick = () => $('#side').classList.toggle('open');
-// feed
 let tab = 'todos';
 function renderFeed() {
-  $('#tabs').innerHTML = [['todos', 'Todos'], ...data.clientes.map(c => [c.id, c.nome])].map(([id, n]) => `<button data-t="${id}" class="${tab === id ? 'on' : ''}">${n}</button>`).join('');
+  const tabs = [['todos', 'Todos'], ['equipe', 'Equipe'], ...data.clientes.filter(c => c.id !== 'gofluxo').map(c => [c.id, c.nome])];
+  $('#tabs').innerHTML = tabs.map(([id, n]) => `<button data-t="${id}" class="${tab === id ? 'on' : ''}">${n}</button>`).join('');
   $('#tabs').querySelectorAll('button').forEach(b => b.onclick = () => { tab = b.dataset.t; renderFeed(); });
-  $('#feedList').innerHTML = atividade.filter(a => tab === 'todos' || data.bots.find(b => b.id === a.botId)?.clienteId === tab).map(a => { const b = data.bots.find(x => x.id === a.botId); return `<div><span>${a.hora}</span><b style="color:${b?.cor}">${b?.nome}</b> ${a.texto}</div>`; }).join('') || '<div style="opacity:.6">Sem atividade.</div>';
+  $('#feedList').innerHTML = atividade.filter(a => {
+    const b = data.bots.find(x => x.id === a.botId);
+    if (tab === 'todos') return true;
+    if (tab === 'equipe') return setorIds.has(b?.clienteId);
+    return b?.clienteId === tab;
+  }).map(a => { const b = data.bots.find(x => x.id === a.botId); const ex = a.exemplo || b?.exemplo ? ' <small>exemplo</small>' : ''; return `<div><span>${a.hora}</span><b style="color:${b?.cor}">${b?.nome}</b> ${a.texto}${ex}</div>`; }).join('') || '<div style="opacity:.6">Sem atividade.</div>';
 }
 $('#ticker').onclick = () => $('#feed').classList.remove('hidden');
 $('#feedClose').onclick = () => $('#feed').classList.add('hidden');
@@ -173,13 +360,13 @@ function applyLight(k) {
   for (const key in tgt) { if (tgt[key].isColor) cur[key].lerp(tgt[key], k); else if (tgt[key].isVector3) cur[key].lerp(tgt[key], k); else cur[key] += (tgt[key] - cur[key]) * k; }
   scene.background = cur.bg; scene.fog = null; hemi.color.copy(cur.hs); hemi.groundColor.copy(cur.hg); hemi.intensity = cur.hi;
   sun.color.copy(cur.sc); sun.intensity = cur.si; sun.position.copy(cur.pos); ground.material.color.copy(cur.gr);
-  winMats.forEach(m => m.emissiveIntensity = cur.win); lampLights.forEach(l => l.intensity = cur.lamp); bulbM.emissiveIntensity = cur.lamp; sinais.forEach(m => m.emissiveIntensity = cur.sign);
+  winMats.forEach(w => { const m = w.m || w; m.emissiveIntensity = (w.frente === 'aguardando') ? cur.win * 0.18 : cur.win; }); lampLights.forEach(l => l.intensity = cur.lamp); bulbM.emissiveIntensity = cur.lamp; sinais.forEach(m => m.emissiveIntensity = cur.sign);
 }
 
 // ---------- câmera e toque ----------
 function resize() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false);
-  viewH = w / h < 1.3 ? 34 : (h < 500 ? 24 : 26); const a = w / h;
+  viewH = w / h < 1.3 ? 38 : (h < 500 ? 26 : 30); const a = w / h;
   cam.left = -viewH * a / 2; cam.right = viewH * a / 2; cam.top = viewH / 2; cam.bottom = -viewH / 2; cam.updateProjectionMatrix();
 }
 addEventListener('resize', resize); resize();
@@ -191,7 +378,7 @@ canvas.addEventListener('pointermove', e => {
   moved += Math.abs(dx) + Math.abs(dy); panTo = null;
   const s = viewH / innerHeight / zoom; const right = new THREE.Vector3(1, 0, -1).normalize(), fwd = new THREE.Vector3(-1, 0, -1).normalize();
   target.addScaledVector(right, -dx * s).addScaledVector(fwd, dy * s * 1.41);
-  const lim = mode === 'city' ? 16 : 8; target.x = THREE.MathUtils.clamp(target.x, -lim, lim); target.z = THREE.MathUtils.clamp(target.z, -lim, lim);
+  const lim = mode === 'city' ? 20 : 8; target.x = THREE.MathUtils.clamp(target.x, -lim, lim); target.z = THREE.MathUtils.clamp(target.z, -lim, lim);
 });
 const up = e => { ptrs.delete(e.pointerId); if (e.type === 'pointerup' && moved < 6 && ptrs.size === 0) pick(e); };
 canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
@@ -236,7 +423,7 @@ function room(p, tipo, cx, cz, w, d) {
   else { desk(p, cx, cz - .2, 0); seats.push([cx, cz + .35]); shelf(p, cx - 2, cz - d / 2 + .4, 0); sofa(p, cx + 1.8, cz + 1.4, Math.PI, '#3d405b'); plant(p, cx + 2.6, cz - 1.8, 1.3); ib(p, 1.6, .02, 1.1, '#b56576', cx, .12, cz + 1.2); }
   return { seats, walk };
 }
-const AC = { gofluxo: 'coroa', mega: 'capacete', cote: 'cruz', dimas: 'oculos', valenlub: 'gota' };
+const AC = { gofluxo: 'coroa', mega: 'capacete', cote: 'cruz', dimas: 'oculos', valenlub: 'gota', conhecimento: 'oculos', tecnologia: 'oculos', qualidade: 'check', marketing: 'gota', comercial: 'capacete', processos: 'oculos', administracao: 'gota', pessoal: 'coroa', openbot: 'capacete' };
 function makeAgent(d, parent, pos, helper, walk) {
   const g = new THREE.Group(); g.position.set(pos[0], .12, pos[1]); parent.add(g);
   const mat = new THREE.MeshStandardMaterial({ color: d.cor, roughness: .35, emissive: d.cor, emissiveIntensity: .15 });
@@ -246,6 +433,7 @@ function makeAgent(d, parent, pos, helper, walk) {
   if (a === 'capacete') { const h = new THREE.Mesh(new THREE.SphereGeometry(.3, 12, 6, 0, 6.3, 0, 1.6), MC('#ffb703')); h.position.y = .25; body.add(h); }
   else if (a === 'coroa') { const h = new THREE.Mesh(new THREE.CylinderGeometry(.18, .16, .14, 6), MC('#ffd23f')); h.position.y = .48; body.add(h); }
   else if (a === 'oculos') { const h = new THREE.Mesh(UB, MC('#1b1d3a')); h.scale.set(.42, .07, .05); h.position.set(0, .12, .28); body.add(h); }
+  else if (a === 'check') { const h = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 8), MC('#34d399')); h.position.y = .48; body.add(h); }
   else { const h = new THREE.Mesh(new THREE.ConeGeometry(.12, .25, 8), am); h.position.y = .52; body.add(h); }
   const ring = new THREE.Mesh(new THREE.RingGeometry(.36, .45, 28), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0 })); ring.rotation.x = -Math.PI / 2; ring.position.y = .03; g.add(ring);
   const lab = document.createElement('div'); lab.className = 'lab in'; lab.style.setProperty('--c', d.cor); labels.appendChild(lab);
@@ -332,7 +520,7 @@ renderer.setAnimationLoop(t => {
   cam.zoom += (zoom - cam.zoom) * Math.min(1, dt * 6); cam.updateProjectionMatrix();
   cam.position.copy(target).add(camOff); cam.lookAt(target);
   const s = t / 1000;
-  if (mode === 'city') cars.forEach(c => { const p = ((s * 3 * c.dir + c.off) % 44 + 44) % 44 - 22; if (c.axis) { c.g.position.set(c.dir > 0 ? .6 : -.6, 0, p); c.g.rotation.y = Math.PI / 2; } else { c.g.position.set(p, 0, c.dir > 0 ? .6 : -.6); c.g.rotation.y = 0; } });
+  if (mode === 'city') cars.forEach(c => { const p = ((s * 3 * c.dir + c.off) % 52 + 52) % 52 - 26; if (c.axis) { c.g.position.set(c.dir > 0 ? .6 : -.6, 0, p); c.g.rotation.y = Math.PI / 2; } else { c.g.position.set(p, 0, c.dir > 0 ? .6 : -.6); c.g.rotation.y = 0; } });
   for (const o of views) {
     const vis = isVisible(o); if (o._v !== vis) { o._v = vis; o.lab.style.display = vis ? '' : 'none'; o.bub.style.display = vis ? '' : 'none'; }
     if (!vis) continue;
@@ -340,7 +528,7 @@ renderer.setAnimationLoop(t => {
     if (o.walk) { const tg = o.walk[o.wi % o.walk.length]; const dx = tg[0] - o.g.position.x, dz = tg[1] - o.g.position.z, L = Math.hypot(dx, dz);
       if (L < .05) o.wi++; else { const sp = Math.min(L, dt * 1.1); o.g.position.x += dx / L * sp; o.g.position.z += dz / L * sp; o.body.rotation.y = Math.atan2(dx, dz); }
       o.body.position.y = base + Math.abs(Math.sin(s * 8 + o.ph)) * .06;
-    } else o.body.position.y = base + Math.sin(s * (st === 'trabalhando' ? (o.city ? 3 : 14) : 1.6) + o.ph) * (o.city ? (st === 'erro' ? .04 : .12) : .025);
+    } else o.body.position.y = base + Math.sin(s * (st === 'trabalhando' ? (o.city ? 3 : 14) : (st === 'aguardando' ? 0.7 : 1.6)) + o.ph) * (o.city ? (st === 'erro' ? .04 : st === 'aguardando' ? .03 : .12) : .025);
     if (!o.city && !o.walk) o.body.rotation.y = Math.PI;
     o.body.rotation.z = st === 'erro' ? Math.sin(s * 14) * .06 : 0; o.ring.scale.setScalar(1 + Math.sin(s * 4) * .08);
     o.g.getWorldPosition(wp); const [x, y] = proj(wp.setY(wp.y + o.body.position.y + (o.city ? .9 : .5)));
@@ -349,6 +537,32 @@ renderer.setAnimationLoop(t => {
   }
   for (const tg of tags) { const vis = mode === 'inside' && !floorAnim && tg.f === builds[curB]?.[curF]; if (tg._v !== vis) { tg._v = vis; tg.el.style.display = vis ? '' : 'none'; } if (vis) { const [x, y] = proj(wp.copy(tg.p)); tg.el.style.left = x + 'px'; tg.el.style.top = y + 'px'; } }
   if (selected && isVisible(selected)) { const [x, y] = proj(selected.g.getWorldPosition(wp).setY(wp.y + .6)); const r = $('#card').getBoundingClientRect(); ln.setAttribute('x1', r.right); ln.setAttribute('y1', r.top + 20); ln.setAttribute('x2', x); ln.setAttribute('y2', y); ln.style.opacity = .8; ln.style.stroke = selected.d.cor; } else ln.style.opacity = 0;
+  // handoff token
+  if (mode === 'city' && openingDone) {
+    const A = bots.find(o => o.d.id === HANDOFF[hFrom % HANDOFF.length]);
+    const B = bots.find(o => o.d.id === HANDOFF[(hFrom + 1) % HANDOFF.length]);
+    if (A && B) {
+      hT += dt * 0.28;
+      if (hT >= 1) { hT = 0; hFrom++; }
+      const t = hT * hT * (3 - 2 * hT);
+      token.position.lerpVectors(A.g.position, B.g.position, t);
+      token.position.y = 1.45 + Math.sin(t * Math.PI) * 1.05;
+      token.rotation.y = s * 2;
+      token.visible = true; tokenLab.style.display = 'block';
+      const [tx, ty] = proj(wp.copy(token.position).setY(token.position.y + .25));
+      tokenLab.style.left = tx + 'px'; tokenLab.style.top = ty + 'px';
+    }
+  } else { token.visible = false; tokenLab.style.display = 'none'; }
+  for (const bl of bLabs) {
+    const vis = mode === 'city';
+    if (bl._v !== vis) { bl._v = vis; bl.el.style.display = vis ? '' : 'none'; }
+    if (vis) {
+      const c = cli[bl.cid];
+      const [x, y] = proj(wp.set(c.pos[0], bl.y, c.pos[1]));
+      bl.el.style.left = x + 'px'; bl.el.style.top = y + 'px';
+    }
+  }
   renderer.render(scene, cam);
 });
 window.__ready = true;
+
