@@ -43,6 +43,7 @@ button { cursor: pointer; }
   overflow: hidden; transition: opacity .55s ease, visibility .55s;
 }
 #opening.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+#opening.gone, #opening.gone * { animation: none !important; }
 #opening .stars { position: absolute; inset: 0; pointer-events: none; }
 #opening .star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: .5; animation: twinkle 3s ease-in-out infinite; }
 @keyframes twinkle { 50% { opacity: .15; } }
@@ -138,7 +139,7 @@ button { cursor: pointer; }
 .qlist .av { width: 22px; height: 22px; font-size: 9px; }
 .view-toggle { display: none; background: #1a1724; border: 1px solid var(--gold-d); border-radius: 99px; padding: 2px; }
 .view-toggle button { background: none; border: 0; padding: 5px 10px; border-radius: 99px; font-size: 12px; font-weight: 650; color: var(--muted); }
-.view-toggle button.on { background: var(--purple); color: #fff; }
+.view-toggle button.on { background: #6d4eef; color: #fff; } /* contraste 5,27:1 no mobile */
 
 /* filtros + precisa */
 #filters {
@@ -320,13 +321,12 @@ button { cursor: pointer; }
   border-radius: 50%; border: 2px solid #14121c; background: #64748b;
 }
 .agent.s-trabalhando .robo-wrap .dot, .row.s-trabalhando .robo-wrap .dot { background: #38bdf8; }
-.agent.s-aprovacao .robo-wrap .dot, .row.s-aprovacao .robo-wrap .dot { background: #fb7185; animation: pulse 1.6s ease-in-out infinite; }
-.agent.s-urgente .robo-wrap .dot, .row.s-urgente .robo-wrap .dot { background: #ef4444; animation: pulse 1s ease-in-out infinite; }
+.agent.s-aprovacao .robo-wrap .dot, .row.s-aprovacao .robo-wrap .dot { background: #fb7185; }
+.agent.s-urgente .robo-wrap .dot, .row.s-urgente .robo-wrap .dot { background: #ef4444; }
 .agent.s-disponivel .robo-wrap .dot { background: #34d399; }
 .agent.s-concluido .robo-wrap .dot { background: #a3e635; }
 .agent.s-aguardando_frente { opacity: .78; }
 .agent.s-aguardando_frente .av { filter: saturate(.7) brightness(.85); }
-@keyframes pulse { 50% { transform: scale(1.15); box-shadow: 0 0 0 3px rgba(251,113,133,.35); } }
 .agent .nm {
   font-size: 11px; font-weight: 700; line-height: 1.2; text-align: center;
   max-width: 112px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -517,7 +517,9 @@ button { cursor: pointer; }
   body.mapa-on #floorWrap { display: block; min-height: 70vh; height: 70vh; overflow: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #hero, #oshock, #odust i, #opening .star, #agentPanel, .agent.s-aprovacao .robo-wrap .dot, .row.s-aprovacao .robo-wrap .dot { animation: none !important; }
+  #hero, #oshock, #odust i, #opening .star, #agentPanel,
+  .agent.s-aprovacao .robo-wrap .dot, .row.s-aprovacao .robo-wrap .dot,
+  .agent.s-urgente .robo-wrap .dot, .row.s-urgente .robo-wrap .dot { animation: none !important; }
   #hero { transform: none; }
   #opening { transition: none; }
 }
@@ -575,26 +577,16 @@ button { cursor: pointer; }
   42% { transform: scale(1, .08); }
 }
 
-/* aprovação: parado, pulso de destaque */
+/* aprovação e urgente: destaque estático (anel), sem animação */
 .agent.s-aprovacao .robo-wrap,
 .row.s-aprovacao .robo-wrap {
-  animation: approve-pulse 1.8s ease-in-out infinite;
   border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, .7);
 }
-@keyframes approve-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 113, 133, .55); }
-  55% { box-shadow: 0 0 0 7px rgba(251, 113, 133, 0); }
-}
-
-/* aguardando: imóvel; um piscar raro e lento, só nos olhos */
-.agent.s-aguardando_frente .eyes-blink,
-.row.s-aguardando_frente .eyes-blink {
-  animation: rare-blink 8s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * .9s);
-}
-@keyframes rare-blink {
-  0%, 86%, 94%, 100% { transform: scale(1, 1); }
-  90% { transform: scale(1, .08); }
+.agent.s-urgente .robo-wrap,
+.row.s-urgente .robo-wrap {
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, .75);
 }
 
 @media (prefers-reduced-motion: reduce) {
